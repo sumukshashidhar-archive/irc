@@ -1,30 +1,37 @@
+//Have to make this transaction based NOW
+
+
+
+
 //Imports start here
-var express = require("express");
-var fs = require('fs');
-var jwt = require('jsonwebtoken')
-var bodyParser = require("body-parser");
-var mongoose = require("mongoose");
+const express = require("express");
+const fs = require('fs');
+const jwt = require('jsonwebtoken')
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 const cors =require('cors');
-var bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 const crypto = require("crypto");
-var cookieParser = require('cookie-parser');
+const cookieParser = require('cookie-parser');
 
 
 //File Requirements
-var db = require('./config/database.js')
-var ENV = require('./config/ENV_VARS.js')
-var user = require('./models/user')
-var JWT_OPTIONS = require('./config/jwt.js')
+const db = require('./config/database.js')
+const ENV = require('./config/ENV_VARS.js')
+const user = require('./models/user')
+const JWT_OPTIONS = require('./config/jwt.js')
+const transaction = require('./models/transaction.js')
 
 // PRIVATE and PUBLIC key
-var privateKEY  = fs.readFileSync('./keys/private.key', 'utf8');
-var publicKEY  = fs.readFileSync('./keys/public.key', 'utf8');
+const privateKEY  = fs.readFileSync('./keys/private.key', 'utf8');
+const publicKEY  = fs.readFileSync('./keys/public.key', 'utf8');
+const transactionKEY = fs.readFileSync('./keys/transaction.key', 'utf8')
 
 
 //Express initializtion
 var app = express();
-
-
+var hash = crypto.createHash('sha256')
+var seed = 
 
 //Using Cors
 app.use(cors());
@@ -59,7 +66,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 
 //STARTING SERVER HERE
-app.listen(ENV.PORT, process.env.IP, function(req, res) //The Serv.port is from a config file
+app.listen(ENV.PORT, process.env.IP, function(req, res) //The ENV.port is from a config file
 {
     console.log("SERVER STARTED");
 });
@@ -85,6 +92,7 @@ app.get('/', function(req, res){
 		res.render('index')
 	}
 })
+
 
 app.post('/', function(req, res){
   if(req.cookies.access_token!=undefined){
@@ -132,6 +140,7 @@ app.post('/register', function(req, res){
         DisplayName: req.body.DisplayName,
         password: BCRYPT_HASH,
         userType: "user"
+        walletID: 
       })
 
       newUser.save(function(err, obj){
@@ -148,6 +157,49 @@ app.post('/register', function(req, res){
   })
 
 })
+
+function getTransactions(USER_OBJ){
+
+}
+
+app.get('/getTransactions', function(req, res){
+  if(req.cookies.access_token!=undefined){
+    jwt.verify(req.cookies.access_token, publicKEY, JWT_OPTIONS.verifyOptions, function(err, decodedToken){
+      if(err){
+        console.log(err)
+        res.clearCookie('access_token').redirect('/login')
+      }
+      else{
+          res.render('transactions')
+      }
+    })
+  }
+  else{
+    res.render('login')
+  }
+})
+
+app.post('/addTransaction', function(req, res){
+    if(req.cookies.access_token!=undefined){
+    jwt.verify(req.cookies.access_token, publicKEY, JWT_OPTIONS.verifyOptions, function(err, decodedToken){
+      if(err){
+        console.log(err)
+        res.clearCookie('access_token').redirect('/login')
+      }
+      else{
+          var newTransaction = new transaction({
+            groupId: req.body.groupId,
+            payer: 
+          })
+      }
+    })
+  }
+  else{
+    res.render('login')
+  }
+
+})
+
 
 app.get('/login', function(req, res){
   if(req.cookies.access_token!=undefined){
@@ -265,9 +317,13 @@ app.get('/admindash' ,function(req, res){
 })
 
 
-
+//This Logout method basically clears the cookies that you have in the browser in order to revoke your access to the site
+// It also makes a change to the number of active users 
 app.get('/logout', function(req, res){
   activeUsers = activeUsers-1;
   console.log("Getting the logout method and clearing cookies")
   res.clearCookie('access_token').redirect('/login')
 })
+
+
+
